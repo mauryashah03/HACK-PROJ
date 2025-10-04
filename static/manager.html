@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Manager - Pending Approvals</title>
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #ADD8E6, #1E3A8A);
+    color: #333;
+  }
+
+  #managerBox {
+    width: 100vw;
+    height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h2 {
+    color: #fff;
+    margin-bottom: 30px;
+    text-align: center;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  }
+
+  .table-container {
+    width: 95%;
+    flex: 1;
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    padding: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table th, table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  table th {
+    background: #f0f4ff;
+    color: #1E3A8A;
+    font-weight: 600;
+  }
+
+  table tr:hover:not(.read-only) {
+    background: #f5f7ff;
+  }
+
+  button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    transition: 0.3s;
+  }
+
+  .approve {
+    background: linear-gradient(45deg, #28a745, #1E7A33);
+    color: #fff;
+  }
+  .approve:hover { background: linear-gradient(45deg, #1E7A33, #28a745); }
+
+  .reject {
+    background: linear-gradient(45deg, #dc3545, #a71d2a);
+    color: #fff;
+  }
+  .reject:hover { background: linear-gradient(45deg, #a71d2a, #dc3545); }
+
+  .approved-row {
+    background: #d4edda !important;
+    color: #155724;
+  }
+
+  .rejected-row {
+    background: #f8d7da !important;
+    color: #721c24;
+  }
+
+  .read-only {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  a {
+    color: #1E3A8A;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  a:hover { text-decoration: underline; }
+
+  .conversion-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 900px) {
+    table th, table td { font-size: 12px; padding: 8px; }
+    button { padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="managerBox">
+  <h2>Manager - Pending Approvals</h2>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Total Amount (Company Currency)</th>
+          <th>Receipt</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="approvalTable">
+        <!-- Dynamic data -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const EXCHANGE_RATES = { 'USD': 88, 'EUR': 95, 'GBP': 110, 'CAD': 65 };
+const COMPANY_CURRENCY = 'INR';
+
+const expenses = [
+  { id: 1, employee: "Sarah", description: "Taxi from Airport", date: "12 Oct, 2025", category: "Travel", amount: "80 USD", originalAmount: 80, currency: "USD", receiptUrl: "#", status: "pending" },
+  { id: 2, employee: "Mark", description: "Client Dinner", date: "10 Oct, 2025", category: "Meals", amount: "150 USD", originalAmount: 150, currency: "USD", receiptUrl: "#", status: "pending" },
+  { id: 3, employee: "John", description: "Hotel Accommodation", date: "11 Oct, 2025", category: "Accommodation", amount: "200 EUR", originalAmount: 200, currency: "EUR", receiptUrl: "#", status: "pending" }
+];
+
+document.addEventListener('DOMContentLoaded', loadPendingApprovals);
+
+function convertToCompanyCurrency(amount, fromCurrency) {
+  if (fromCurrency === COMPANY_CURRENCY) return amount;
+  const rate = EXCHANGE_RATES[fromCurrency] || 1;
+  return amount * rate;
+}
+
+function populateTable(expensesData) {
+  const tableBody = document.getElementById('approvalTable');
+  tableBody.innerHTML = '';
+
+  expensesData.forEach(expense => {
+    const row = document.createElement('tr');
+    row.setAttribute('data-expense-id', expense.id);
+
+    const convertedAmount = convertToCompanyCurrency(expense.originalAmount, expense.currency);
+
+    if (expense.status === 'approved') row.classList.add('approved-row', 'read-only');
+    else if (expense.status === 'rejected') row.classList.add('rejected-row', 'read-only');
+
+    row.innerHTML = `
+      <td>${expense.employee}</td>
+      <td>${expense.description}</td>
+      <td>${expense.date}</td>
+      <td>${expense.category}</td>
+      <td>${expense.amount}</td>
+      <td>
+        <div><strong>${convertedAmount.toLocaleString()} ${COMPANY_CURRENCY}</strong></div>
+        <div class="conversion-info">${expense.originalAmount} ${expense.currency} = ${convertedAmount} ${COMPANY_CURRENCY}</div>
+      </td>
+      <td><a href="${expense.receiptUrl}" target="_blank">View</a></td>
+      <td>
+        ${expense.status === 'pending' ?
+          `<button class="approve" onclick="approveExpense(${expense.id})">Approve</button>
+           <button class="reject" onclick="rejectExpense(${expense.id})">Reject</button>` :
+          `<span>${expense.status.toUpperCase()}</span>`
+        }
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+function loadPendingApprovals() {
+  populateTable(expenses);
+}
+
+function updateExpenseStatus(expenseId, status) {
+  const expense = expenses.find(e => e.id === expenseId);
+  if (expense) expense.status = status;
+
+  const row = document.querySelector(`tr[data-expense-id="${expenseId}"]`);
+  if (row) {
+    row.classList.remove('approved-row','rejected-row');
+    if (status === 'approved') row.classList.add('approved-row', 'read-only');
+    if (status === 'rejected') row.classList.add('rejected-row', 'read-only');
+
+    const actionCell = row.cells[7];
+    actionCell.innerHTML = `<span>${status.toUpperCase()}</span>`;
+  }
+}
+
+function approveExpense(expenseId) {
+  if (confirm('Approve this expense?')) {
+    setTimeout(() => { updateExpenseStatus(expenseId, 'approved'); alert('Expense approved!'); }, 500);
+  }
+}
+
+function rejectExpense(expenseId) {
+  if (confirm('Reject this expense?')) {
+    setTimeout(() => { updateExpenseStatus(expenseId, 'rejected'); alert('Expense rejected!'); }, 500);
+  }
+}
+</script>
+
+</body>
+</html>

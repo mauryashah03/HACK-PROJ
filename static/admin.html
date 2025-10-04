@@ -1,108 +1,109 @@
-<!-- admin.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<title>Admin - User & Role Assignment</title>
 <style>
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-}
-#adminBox {
-  width: 100vw;
-  height: 100vh;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #f5f5f5;
-}
-h2 {
-  margin-bottom: 20px;
-}
-.table-container {
-  width: 95%;
-  overflow-x: auto;
-}
-</style>
-</head>
-<body>
-<div id="adminBox">
-  <h2>Admin Panel - Assign Roles</h2>
-  <div class="form-row">
-    <input type="text" placeholder="Name" id="userName">
-    <select id="role">
-      <option value="Manager">Manager</option>
-      <option value="Employee">Employee</option>
-    </select>
-    <input type="email" placeholder="Email" id="userEmail">
-  </div>
-  <button onclick="addUser()">Assign Role & Send Password</button>
-
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Role</th>
-          <th>Password</th>
-          <th>Manager</th>
-          <th>Email</th>
-          <th>Forgot Password</th>
-        </tr>
-      </thead>
-      <tbody id="userTable"></tbody>
-    </table>
-  </div>
-</div>
-
-<script>
-function addUser() {
-  const name = document.getElementById("userName").value.trim();
-  const role = document.getElementById("role").value;
-  const email = document.getElementById("userEmail").value.trim();
-
-  if (!name || !email) {
-    alert("⚠ Please fill all fields!");
-    return;
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    color: #333;
   }
 
-  const password = Math.random().toString(36).slice(-8);
-
-  let users = JSON.parse(localStorage.getItem("users")) || [];
-  users.push({ name, role, email, password });
-  localStorage.setItem("users", JSON.stringify(users));
-
-  const table = document.getElementById("userTable");
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${name}</td>
-    <td>${role}</td>
-    <td>${password}</td>
-    <td>${role === "Employee" ? "Manager Assigned" : "-"}</td>
-    <td>${email}</td>
-    <td><button onclick="forgotPassword('${email}')">Forgot Password</button></td>
-  `;
-  table.appendChild(row);
-
-  document.getElementById("userName").value = "";
-  document.getElementById("userEmail").value = "";
-}
-
-function forgotPassword(email) {
-  let users = JSON.parse(localStorage.getItem("users")) || [];
-  let user = users.find(u => u.email === email);
-
-  if (!user) {
-    alert("⚠ User not found!");
-    return;
+  #adminBox {
+    width: 100vw;
+    height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  const newPassword = Math.random().toString(36).slice(-8);
-  user.password = newPassword;
-  localStorage.setItem("users", JSON.stringify(users));
-  alert(`🔑 New password for ${email}: ${newPassword}`);
-}
-</script>
-</body>
-</html>
+  h2 {
+    color: #1E3A8A;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 900px;
+    justify-content: center;
+  }
+
+  .form-row input, .form-row select {
+    flex: 1;
+    min-width: 180px;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: 0.3s;
+  }
+
+  .form-row input:focus, .form-row select:focus {
+    border-color: #1E3A8A;
+    box-shadow: 0 0 5px #1E3A8A44;
+    outline: none;
+  }
+
+  .form-row button {
+    flex: 1;
+    min-width: 180px;
+    background: linear-gradient(45deg, #1E3A8A, #0F2040);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .form-row button:hover {
+    background: linear-gradient(45deg, #0F2040, #1E3A8A);
+  }
+
+  .table-container {
+    width: 95%;
+    flex: 1;
+    overflow-x: auto;
+    margin-top: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  table th, table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+  }
+
+  table th {
+    background: #f0f4ff;
+    color: #1E3A8A;
+    font-weight: 600;
+  }
+
+  table tr:hover {
+    background: #f5f7ff;
+  }
+
+  @media (max-width: 700px) {
+    .form-row { flex-direction: column; gap: 10px; }
+  }
