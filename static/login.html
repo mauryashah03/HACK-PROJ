@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Signup/Login</title>
+<style>
+:root {
+  --bg-gradient: linear-gradient(135deg, #ADD8E6, #1E3A8A);
+  --button-gradient: linear-gradient(45deg, #1E3A8A, #0F2040);
+  --header-color: #1E3A8A;
+  --input-focus-color: #1E3A8A;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg-gradient);
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: backgroundShift 12s ease infinite alternate;
+}
+
+@keyframes backgroundShift {
+  0% { background: var(--bg-gradient); }
+  100% { background: linear-gradient(135deg, #1E3A8A, #ADD8E6); }
+}
+
+.container {
+  width: 400px;
+}
+
+.box {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  display: none;
+}
+
+.box.active {
+  display: block;
+}
+
+h2 {
+  text-align: center;
+  color: var(--header-color);
+  font-weight: bold;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #f9f9f9;
+}
+
+input:focus, select:focus {
+  border-color: var(--input-focus-color);
+  box-shadow: 0 0 8px var(--input-focus-color);
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: var(--button-gradient);
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #0F2040, #1E3A8A);
+}
+
+.footer-text {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Signup Box -->
+  <div class="box active" id="signupBox">
+    <h2>Company Signup</h2>
+    <div class="form-group">
+      <input type="text" id="name" placeholder="Full Name" required>
+    </div>
+    <div class="form-group">
+      <input type="email" id="email" placeholder="Email Address" required>
+    </div>
+    <div class="form-group">
+      <input type="password" id="password" placeholder="Password" required>
+    </div>
+    <div class="form-group">
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+    </div>
+    <div class="form-group">
+      <select id="currency" required>
+        <option value="">Select Currency</option>
+        <option>USD</option>
+        <option>INR</option>
+        <option>EUR</option>
+        <option>GBP</option>
+      </select>
+    </div>
+    <button onclick="signup()">Signup</button>
+    <div class="footer-text" onclick="switchToLogin()">Already have an account? Login here.</div>
+  </div>
+
+  <!-- Login Box -->
+  <div class="box" id="loginBox">
+    <h2>Login</h2>
+    <div class="form-group">
+      <input type="email" id="loginEmail" placeholder="Email Address" required>
+    </div>
+    <div class="form-group">
+      <input type="password" id="loginPassword" placeholder="Password" required>
+    </div>
+    <button onclick="login()">Login</button>
+    <div class="footer-text" style="color: blue;" onclick="forgotPasswordPrompt()">Forgot Password?</div>
+    <div class="footer-text" onclick="switchToSignup()">Don't have an account? Signup here.</div>
+  </div>
+</div>
+
+<script>
+function switchToLogin() {
+  document.getElementById("signupBox").classList.remove("active");
+  document.getElementById("loginBox").classList.add("active");
+}
+
+function switchToSignup() {
+  document.getElementById("loginBox").classList.remove("active");
+  document.getElementById("signupBox").classList.add("active");
+}
+
+function signup() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) {
+    alert("❌ Please enter a valid email address!");
+    return;
+  }
+  if (password !== confirmPassword) {
+    alert("⚠️ Passwords do not match!");
+    return;
+  }
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  users.push({ email, password });
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("✅ Signup successful!");
+  switchToLogin();
+}
+
+function login() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let user = users.find(u => u.email === email && u.password === password);
+
+  if (!user) {
+    alert("❌ Invalid email or password!");
+    return;
+  }
+  alert("✅ Login successful!");
+  window.location.href = "admin.html"; // redirect to admin panel page
+}
+
+function forgotPasswordPrompt() {
+  const email = prompt("Enter your registered email to reset password:");
+  if (!email) return;
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let user = users.find(u => u.email === email);
+
+  if (!user) {
+    alert("⚠ User not found!");
+    return;
+  }
+
+  const newPassword = Math.random().toString(36).slice(-8);
+  user.password = newPassword;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert(`🔑 New password for ${email}: ${newPassword}`);
+}
+</script>
+
+</body>
+</html>
